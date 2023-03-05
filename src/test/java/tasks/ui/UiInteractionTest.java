@@ -1,10 +1,10 @@
 package tasks.ui;
 
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Download;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.MouseButton;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -13,21 +13,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Random;
 
-public class UiInteractionTest {
-
-    private static Page page;
-
-    @BeforeAll
-    public static void setUp() {
-        Playwright playwright = Playwright.create();
-        BrowserContext context = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                        .setHeadless(false)
-                        .setSlowMo(1000))
-                .newContext();
-        page = context.newPage();
-    }
+public class UiInteractionTest extends BaseTest {
 
     @Test
     @DisplayName("Login via auth form")
@@ -203,18 +190,4 @@ public class UiInteractionTest {
         Assertions.assertFalse(isVisible);
     }
 
-
-    private void fillFormAndLogIn() {
-        page.fill("//input[@id='username']", "tomsmith");
-        page.fill("//input[@id='password']", "SuperSecretPassword!");
-        page.click("//button[@type='submit']");
-    }
-
-    private int generateNumber(int boundary) {
-        int numberToClick = new Random().nextInt(boundary);
-        if (numberToClick == 0) {
-            numberToClick = 1;
-        }
-        return numberToClick;
-    }
 }
