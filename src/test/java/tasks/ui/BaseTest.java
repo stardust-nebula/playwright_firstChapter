@@ -57,8 +57,8 @@ public abstract class BaseTest {
     }
 
     protected void fillFormAndLogIn() {
-        page.fill("//input[@id='username']", "tomsmith");
-        page.fill("//input[@id='password']", "SuperSecretPassword!");
+        page.fill("//input[@id='username']", configReader.getPropValue("usernameAuthForm"));
+        page.fill("//input[@id='password']", configReader.getPropValue("passwordAuthForm"));
         page.click("//button[@type='submit']");
     }
 
