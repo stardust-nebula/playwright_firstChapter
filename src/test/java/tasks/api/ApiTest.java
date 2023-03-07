@@ -16,6 +16,8 @@ import org.junit.jupiter.api.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static util.ApiConstants.*;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ApiTest {
     private static Playwright playwright;
@@ -35,7 +37,7 @@ public class ApiTest {
     private static void setRequestContent() {
         request = playwright.request()
                 .newContext(new APIRequest.NewContextOptions()
-                        .setBaseURL("https://restful-booker.herokuapp.com")
+                        .setBaseURL(BASE_API_URL)
                         .setExtraHTTPHeaders(headers));
     }
 
@@ -55,7 +57,7 @@ public class ApiTest {
                 .bookingDates(bookingDates)
                 .additionalneeds("Breakfast")
                 .build();
-        APIResponse response = request.post("/booking", RequestOptions.create().setData(booking));
+        APIResponse response = request.post(BOOKING_ENDPOINT, RequestOptions.create().setData(booking));
         BookingInfo bookingInfoBody = new Gson().fromJson(response.text(), BookingInfo.class);
         createdBookingId = bookingInfoBody.getBookingid();
         Assertions.assertTrue(response.ok());
@@ -65,7 +67,7 @@ public class ApiTest {
     @Order(2)
     @DisplayName("Get booking b id")
     public void getBookingByIdTest() {
-        APIResponse response = request.get("/booking/" + createdBookingId);
+        APIResponse response = request.get(BOOKING_ENDPOINT + String.format(BOOKING_ID_ENDPOINT, createdBookingId));
         Assertions.assertTrue(response.ok());
     }
 
@@ -77,7 +79,7 @@ public class ApiTest {
                 .username("admin")
                 .password("password123")
                 .build();
-        APIResponse response = request.post("/auth", RequestOptions.create().setData(user));
+        APIResponse response = request.post(AUTH_ENDPOINT, RequestOptions.create().setData(user));
         authToken = new Gson().fromJson(response.text(), Token.class).getToken();
         Assertions.assertTrue(response.ok());
     }
@@ -91,7 +93,8 @@ public class ApiTest {
         requestBody.put("firstname", newName);
         headers.put("Cookie", "token=" + authToken);
         setRequestContent();
-        APIResponse response = request.patch("/booking/" + createdBookingId, RequestOptions.create().setData(requestBody));
+        APIResponse response = request.patch(BOOKING_ENDPOINT + String.format(BOOKING_ID_ENDPOINT, createdBookingId),
+                RequestOptions.create().setData(requestBody));
         Assertions.assertAll(
                 () -> Assertions.assertTrue(response.ok()),
                 () -> Assertions.assertTrue(new Gson()
@@ -104,7 +107,7 @@ public class ApiTest {
     @Order(5)
     @DisplayName("Delete booking by id")
     public void deleteBookingByIdTest() {
-        APIResponse response = request.delete("/booking/" + createdBookingId);
+        APIResponse response = request.delete(BOOKING_ENDPOINT + String.format(BOOKING_ID_ENDPOINT, createdBookingId));
         Assertions.assertAll(
                 () -> Assertions.assertTrue(response.status() == 201),
                 () -> Assertions.assertTrue(response.statusText().equals("Created")),
