@@ -1,51 +1,43 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 import util.ConfigReader;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Random;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseTest {
     protected static Playwright playwright;
     protected static Browser browser;
     protected BrowserContext context;
     protected Page page;
-    private static ConfigReader configReader;
 
     @BeforeAll
-    public static void setUp() throws IOException {
-        configReader = new ConfigReader();
+    public void setUp() {
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(setBrowserTypeOptionsLaunchOptions());
+        browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
     }
 
     @BeforeEach
     public void setUpBeforeEachMethod() {
-        context = setBrowserNewContext();
+        context = browser.newContext(setBrowserNewContext());
         page = context.newPage();
     }
 
-    private static BrowserType.LaunchOptions setBrowserTypeOptionsLaunchOptions() throws IOException {
+    private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
         return new BrowserType.LaunchOptions()
                 .setHeadless(false)
                 .setSlowMo(1000)
-                .setChannel(configReader.getPropValue("browserName"));
+                .setChannel(ConfigReader.getPropValue("browserName"));
     }
 
-
-    private static BrowserContext setBrowserNewContext() {
-        return browser.newContext(
-                new Browser.NewContextOptions()
-                        .setRecordVideoDir(Paths.get("video/"))
-                        .setRecordVideoSize(1880, 880)
-                        .setViewportSize(1880, 880)
-        );
+    private Browser.NewContextOptions setBrowserNewContext() {
+        return new Browser.NewContextOptions()
+                .setRecordVideoDir(Paths.get("video/"))
+                .setRecordVideoSize(1880, 880)
+                .setViewportSize(1880, 880);
     }
 
     protected int generateNumber(int boundary) {
@@ -57,14 +49,14 @@ public abstract class BaseTest {
     }
 
     protected void fillFormAndLogIn() {
-        page.fill("//input[@id='username']", configReader.getPropValue("usernameAuthForm"));
-        page.fill("//input[@id='password']", configReader.getPropValue("passwordAuthForm"));
+        page.fill("//input[@id='username']", ConfigReader.getPropValue("usernameAuthForm"));
+        page.fill("//input[@id='password']", ConfigReader.getPropValue("passwordAuthForm"));
         page.click("//button[@type='submit']");
     }
 
     private Page.ScreenshotOptions screenshotOptions(String screenshotFileName) {
         return new Page.ScreenshotOptions()
-                .setPath(Paths.get(configReader.getPropValue("screenshotPath") + screenshotFileName));
+                .setPath(Paths.get(ConfigReader.getPropValue("screenshotPath") + screenshotFileName));
     }
 
     protected void takeScreenshot(String screenshotFileName) {
@@ -78,7 +70,7 @@ public abstract class BaseTest {
 
     protected void takeScreenshotByLocator(String locatorElement, String screenshotFileName) {
         page.locator(locatorElement).screenshot(new Locator.ScreenshotOptions()
-                .setPath(Paths.get(configReader.getPropValue("screenshotPath") + screenshotFileName)));
+                .setPath(Paths.get(ConfigReader.getPropValue("screenshotPath") + screenshotFileName)));
     }
 
     @AfterEach
@@ -88,7 +80,7 @@ public abstract class BaseTest {
     }
 
     @AfterAll
-    public static void tearDown() {
+    public void tearDown() {
         browser.close();
         playwright.close();
     }
