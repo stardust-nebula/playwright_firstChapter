@@ -108,65 +108,26 @@ public class UiInteractionTest {
     public void uploadFileTest() {
         String fileName = new Date().getTime() + "0101_name.txt";
         String fileText = new Date().getTime() + "_0202 - Description";
-        String actualText = null;
         page.navigate("http://the-internet.herokuapp.com/upload");
-        page.locator("//input[@id='file-upload']")
-                .setInputFiles(new FilePayload(fileName, "text/plain", fileText
-                        .getBytes(StandardCharsets.UTF_8)));
-        page.click("//input[@id='file-submit']");
-        boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
-        System.out.println("Result: " + isSuccessMessageDisplays);
-        Assertions.assertTrue(isSuccessMessageDisplays);
-
-        page.navigate("http://the-internet.herokuapp.com/download");
-        Download download = page.waitForDownload(() -> {
-            page.getByText(fileName).click();
-        });
-        download.saveAs(Paths.get("src/test/resources/download/" + fileName));
-        try (FileReader reader = new FileReader("src/test/resources/download/" + fileName)) {
-            char[] buf = new char[256];
-            int c;
-            while ((c = reader.read(buf)) > 0) {
-                if (c < 256) {
-                    buf = Arrays.copyOf(buf, c);
-                }
-            }
-            actualText = String.valueOf(buf);
-        } catch (IOException e) {
-            log.info("Error while reading a file by path " + "src/test/resources/download/" + fileName);
-        }
-        Assertions.assertEquals(fileText, actualText);
-    }
-
-    @Test
-    @DisplayName("Download uploaded file")
-    public void uploadDownloadFileTest() {
-        String fileName = new Random().nextInt() + "_0202_name.txt";
-        String fileText = new Random().nextInt() + "_0202 - Description";
-        String actualText = null;
         FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText
                 .getBytes(StandardCharsets.UTF_8));
-        page.navigate("http://the-internet.herokuapp.com/upload");
         page.locator("//input[@id='file-upload']").setInputFiles(filePayload);
         page.click("//input[@id='file-submit']");
+        boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
+        Assertions.assertTrue(isSuccessMessageDisplays);
         page.navigate("http://the-internet.herokuapp.com/download");
         Download download = page.waitForDownload(() -> {
             page.getByText(fileName).click();
         });
         download.saveAs(Paths.get("src/test/resources/download/" + fileName));
-        try (FileReader reader = new FileReader("src/test/resources/download/" + fileName)) {
-            char[] buf = new char[256];
-            int c;
-            while ((c = reader.read(buf)) > 0) {
-                if (c < 256) {
-                    buf = Arrays.copyOf(buf, c);
-                }
-            }
-            actualText = String.valueOf(buf);
+        String uploaded = Arrays.toString(filePayload.buffer);
+        String downloaded;
+        try {
+            downloaded = Arrays.toString(download.createReadStream().readAllBytes());
         } catch (IOException e) {
-            log.info("Error while reading a file by path " + "src/test/resources/download/" + fileName);
+            throw new RuntimeException(e);
         }
-        Assertions.assertEquals(fileText, actualText);
+        Assertions.assertEquals(uploaded, downloaded);
     }
 
     @Test
