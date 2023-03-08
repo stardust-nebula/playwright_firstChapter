@@ -14,17 +14,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static util.UrlConstants.LOGIN_PAGE_URL;
-
 public class UiInteractionTest extends BaseTest {
 
     @Test
     @DisplayName("Login via auth form")
     public void loginViaAuthFormTest() {
         String expectedLoginMessage = "You logged into a secure area!";
-        page.navigate(LOGIN_PAGE_URL);
-        loginForm.fillFormAndLogIn();
-        boolean isUserLoggedIntoMessageAppears = messageForm.isMessageAppears(expectedLoginMessage);
+        page.navigate("http://the-internet.herokuapp.com/login");
+        fillFormAndLogIn();
+        boolean isUserLoggedIntoMessageAppears = page.locator("//div[@id='flash']")
+                .textContent()
+                .contains(expectedLoginMessage);
         Assertions.assertTrue(isUserLoggedIntoMessageAppears);
     }
 
@@ -33,9 +33,11 @@ public class UiInteractionTest extends BaseTest {
     public void logoutViaAuthFormTest() {
         String expectedLogoutMessage = "You logged out of the secure area!";
         page.navigate("http://the-internet.herokuapp.com/login");
-        loginForm.fillFormAndLogIn();
+        fillFormAndLogIn();
         page.click("//a[@href='/logout']");
-        boolean isUserLoggedOutMessageAppears = messageForm.isMessageAppears(expectedLogoutMessage);
+        boolean isUserLoggedOutMessageAppears = page.locator("//div[@id='flash']")
+                .textContent()
+                .contains(expectedLogoutMessage);
         Assertions.assertTrue(isUserLoggedOutMessageAppears);
     }
 
