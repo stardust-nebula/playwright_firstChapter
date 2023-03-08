@@ -1,6 +1,8 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
+import form.LoginForm;
+import form.MessageForm;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
 
@@ -13,6 +15,8 @@ public abstract class BaseTest {
     protected static Browser browser;
     protected BrowserContext context;
     protected Page page;
+    protected MessageForm messageForm;
+    protected LoginForm loginForm;
 
     @BeforeAll
     public void setUp() {
@@ -24,6 +28,8 @@ public abstract class BaseTest {
     public void setUpBeforeEachMethod() {
         context = browser.newContext(setBrowserNewContext());
         page = context.newPage();
+        loginForm = new LoginForm(page);
+        messageForm = new MessageForm(page);
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
@@ -46,12 +52,6 @@ public abstract class BaseTest {
             numberToClick = 1;
         }
         return numberToClick;
-    }
-
-    protected void fillFormAndLogIn() {
-        page.fill("//input[@id='username']", ConfigReader.getPropValue("usernameAuthForm"));
-        page.fill("//input[@id='password']", ConfigReader.getPropValue("passwordAuthForm"));
-        page.click("//button[@type='submit']");
     }
 
     private Page.ScreenshotOptions screenshotOptions(String screenshotFileName) {
