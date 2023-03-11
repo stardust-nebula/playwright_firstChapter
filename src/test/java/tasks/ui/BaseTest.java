@@ -18,6 +18,7 @@ public abstract class BaseTest {
     public void setUp() {
         playwright = Playwright.create();
         browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+
     }
 
     @BeforeEach
