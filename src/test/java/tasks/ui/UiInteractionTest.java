@@ -2,6 +2,7 @@ package tasks.ui;
 
 import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.MouseButton;
 import form.HeaderForm;
@@ -49,27 +50,18 @@ public class UiInteractionTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("Add Elements")
+    @DisplayName("Add and Remove Elements")
     public void addElementsTest() {
         int numberToClick = generateNumber(10);
+        Locator.ClickOptions clickOptionsCount = new Locator.ClickOptions().setClickCount(numberToClick);
         page.navigate("/add_remove_elements/");
-        page.locator("//button[contains(text(), 'Add Element')]").click(new Locator.ClickOptions().setClickCount(numberToClick));
-        Locator locator = page.locator("//button[contains(text(),'Delete')]");
+        Locator addElement = page.locator("button", new Page.LocatorOptions().setHasText("Add Element"));
+        addElement.click(clickOptionsCount);
+        Locator locator = page.locator("button", new Page.LocatorOptions().setHasText("Delete"));
         int numberOfDeleteElements = locator.count();
         Assertions.assertTrue(numberToClick == numberOfDeleteElements);
-    }
-
-    @Test
-    @DisplayName("Remove Elements")
-    public void removeElementsTest() {
-        int numberToClick = generateNumber(10);
-        page.navigate("/add_remove_elements/");
-        page.locator("//button[contains(text(), 'Add Element')]").click(new Locator.ClickOptions().setClickCount(numberToClick));
-        Locator locator = page.locator("//button[contains(text(),'Delete')]");
-        for (int i = 0; i < numberToClick; i++) {
-            locator.last().click();
-        }
-        Assertions.assertTrue(locator.count() == 0);
+        locator.first().click(clickOptionsCount);
+        Assertions.assertEquals(0, locator.count());
     }
 
     @Test
