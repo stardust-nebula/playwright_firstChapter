@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Date;
 
 import static form.MessageForm.SUCCESS_LOGIN_MESSAGE;
 import static form.MessageForm.SUCCESS_LOGOUT_MESSAGE;
