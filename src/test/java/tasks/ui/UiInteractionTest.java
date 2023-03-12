@@ -4,6 +4,9 @@ import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.MouseButton;
+import form.HeaderForm;
+import form.LoginForm;
+import form.MessageForm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,9 @@ public class UiInteractionTest extends BaseTest {
 
     private static final String username = ConfigReader.getPropValue("usernameAuthForm");
     private static final String password = ConfigReader.getPropValue("passwordAuthForm");
+    private MessageForm messageForm = new MessageForm(page);
+    private LoginForm loginForm = new LoginForm(page);
+    private HeaderForm headerForm = new HeaderForm(page);
 
     @Test
     @DisplayName("Login and Logout via auth form")
@@ -35,17 +41,6 @@ public class UiInteractionTest extends BaseTest {
         Assertions.assertTrue(isUserLoggedOutMessageAppears);
 
     }
-//
-//    @Test
-//    @DisplayName("Logout via auth form")
-//    public void logoutViaAuthFormTest() {
-//        String expectedLogoutMessage = "You logged out of the secure area!";
-//        page.navigate("/login");
-//        loginForm.fillFormAndLogIn(username, password);
-//        page.click("//a[@href='/logout']");
-//        boolean isUserLoggedOutMessageAppears = messageForm.isMessageAppears(expectedLogoutMessage);
-//        Assertions.assertTrue(isUserLoggedOutMessageAppears);
-//    }
 
     @Test
     @DisplayName("Login via http credentials")

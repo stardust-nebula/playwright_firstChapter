@@ -1,38 +1,44 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
-import form.HeaderForm;
-import form.LoginForm;
-import form.MessageForm;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
 
 import java.nio.file.Paths;
 import java.util.Random;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseTest {
     protected static Playwright playwright;
     protected static Browser browser;
     protected BrowserContext context;
     protected Page page;
-    protected MessageForm messageForm;
-    protected LoginForm loginForm;
-    protected HeaderForm headerForm;
 
     @BeforeAll
     public void setUp() {
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+        switch (ConfigReader.getPropValue("browserName")) {
+            case "chrome":
+                browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+                break;
+            case "firefox":
+                browser = playwright.firefox().launch(getBrowserTypeLaunchOptions());
+                break;
+            default:
+                log.info("Requesting browser is not supported. Launching the default browser");
+                browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+                break;
+        }
+
     }
 
     @BeforeEach
     public void setUpBeforeEachMethod() {
         context = browser.newContext(setBrowserNewContext());
         page = context.newPage();
-        loginForm = new LoginForm(page);
-        messageForm = new MessageForm(page);
-        headerForm = new HeaderForm(page);
+
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
