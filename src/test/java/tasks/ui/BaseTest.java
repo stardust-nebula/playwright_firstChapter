@@ -1,12 +1,17 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
+import form.HeaderForm;
+import form.LoginForm;
+import form.MessageForm;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
 
 import java.nio.file.Paths;
 import java.util.Random;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseTest {
     protected static Playwright playwright;
@@ -17,7 +22,18 @@ public abstract class BaseTest {
     @BeforeAll
     public void setUp() {
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+        switch (ConfigReader.getPropValue("browserName")) {
+            case "chrome":
+                browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+                break;
+            case "firefox":
+                browser = playwright.firefox().launch(getBrowserTypeLaunchOptions());
+                break;
+            default:
+                log.info("Requesting browser is not supported. Launching the default browser");
+                browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
+                break;
+        }
 
     }
 
@@ -28,31 +44,28 @@ public abstract class BaseTest {
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
+        double slowMo = Double.parseDouble(ConfigReader.getPropValue("setSlowMoParam"));
         return new BrowserType.LaunchOptions()
                 .setHeadless(false)
-                .setSlowMo(1000)
+                .setSlowMo(slowMo)
                 .setChannel(ConfigReader.getPropValue("browserName"));
     }
 
     private Browser.NewContextOptions setBrowserNewContext() {
+        int recordVideoWidth = Integer.parseInt(ConfigReader.getPropValue("recordVideSizeByWidth"));
+        int recordVideoHeight = Integer.parseInt(ConfigReader.getPropValue("recordVideSizeByHeight"));
+        int viewPortWidth = Integer.parseInt(ConfigReader.getPropValue("viewPortByWidth"));
+        int viewPortHeight = Integer.parseInt(ConfigReader.getPropValue("viewPortByHeight"));
+
         return new Browser.NewContextOptions()
                 .setRecordVideoDir(Paths.get("video/"))
-                .setRecordVideoSize(1880, 880)
-                .setViewportSize(1880, 880);
+                .setRecordVideoSize(recordVideoWidth, recordVideoHeight)
+                .setViewportSize(viewPortWidth, viewPortHeight)
+                .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"));
     }
 
     protected int generateNumber(int boundary) {
-        int numberToClick = new Random().nextInt(boundary);
-        if (numberToClick == 0) {
-            numberToClick = 1;
-        }
-        return numberToClick;
-    }
-
-    protected void fillFormAndLogIn() {
-        page.fill("//input[@id='username']", ConfigReader.getPropValue("usernameAuthForm"));
-        page.fill("//input[@id='password']", ConfigReader.getPropValue("passwordAuthForm"));
-        page.click("//button[@type='submit']");
+        return new Random().nextInt(boundary) + 1;
     }
 
     private Page.ScreenshotOptions screenshotOptions(String screenshotFileName) {

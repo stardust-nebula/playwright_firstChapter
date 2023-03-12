@@ -2,11 +2,16 @@ package tasks.ui;
 
 import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.MouseButton;
+import form.HeaderForm;
+import form.LoginForm;
+import form.MessageForm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import util.ConfigReader;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,50 +19,45 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import static form.MessageForm.SUCCESS_LOGIN_MESSAGE;
+import static form.MessageForm.SUCCESS_LOGOUT_MESSAGE;
+
 public class UiInteractionTest extends BaseTest {
 
-    @Test
-    @DisplayName("Login via auth form")
-    public void loginViaAuthFormTest() {
-        String expectedLoginMessage = "You logged into a secure area!";
-        page.navigate("http://the-internet.herokuapp.com/login");
-        fillFormAndLogIn();
-        boolean isUserLoggedIntoMessageAppears = page.locator("//div[@id='flash']")
-                .textContent()
-                .contains(expectedLoginMessage);
-        Assertions.assertTrue(isUserLoggedIntoMessageAppears);
-    }
+    private static String checkboxLocatorPath = "//input[@type='checkbox']";
 
     @Test
-    @DisplayName("Logout via auth form")
-    public void logoutViaAuthFormTest() {
-        String expectedLogoutMessage = "You logged out of the secure area!";
-        page.navigate("http://the-internet.herokuapp.com/login");
-        fillFormAndLogIn();
-        page.click("//a[@href='/logout']");
-        boolean isUserLoggedOutMessageAppears = page.locator("//div[@id='flash']")
-                .textContent()
-                .contains(expectedLogoutMessage);
+    @DisplayName("Login and Logout via auth form")
+    public void loginViaAuthFormTest() {
+        String username = ConfigReader.getPropValue("usernameAuthForm");
+        String password = ConfigReader.getPropValue("passwordAuthForm");
+        MessageForm messageForm = new MessageForm(page);
+        LoginForm loginForm = new LoginForm(page);
+        HeaderForm headerForm = new HeaderForm(page);
+        page.navigate("/login");
+        loginForm.fillFormAndLogIn(username, password);
+        boolean isUserLoggedIntoMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGIN_MESSAGE);
+        Assertions.assertTrue(isUserLoggedIntoMessageAppears);
+        headerForm.clickLogoutButton();
+        boolean isUserLoggedOutMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGOUT_MESSAGE);
         Assertions.assertTrue(isUserLoggedOutMessageAppears);
+
     }
 
     @Test
     @DisplayName("Login via http credentials")
     public void loginViaHttpCredTest() {
-        page.navigate("http://@the-internet.herokuapp.com/basic_auth");
+        page.navigate("/basic_auth");
         boolean isSuccessMessageDisplays = page.locator("//p").textContent().contains("Congratulations!");
         Assertions.assertTrue(isSuccessMessageDisplays);
     }
 
     @Test
-    @DisplayName("Add and remove Elements")
+    @DisplayName("Add and Remove Elements")
     public void addElementsTest() {
-        int numberToClick = new Random().nextInt(10);
-        if (numberToClick == 0) {
-            ++numberToClick;
-        }
+        int numberToClick = generateNumber(10);
         Locator.ClickOptions clickOptionsCount = new Locator.ClickOptions().setClickCount(numberToClick);
-        page.navigate("http://the-internet.herokuapp.com/add_remove_elements/");
+        page.navigate("/add_remove_elements/");
         Locator addElement = page.locator("button", new Page.LocatorOptions().setHasText("Add Element"));
         addElement.click(clickOptionsCount);
         Locator locator = page.locator("button", new Page.LocatorOptions().setHasText("Delete"));
@@ -71,8 +71,8 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Open dialog by right-clicking and accept")
     public void rightClickToOpenDialogTest() {
         String expectedDialogMessage = "You selected a context menu";
+        page.navigate("/context_menu");
         StringBuilder builder = new StringBuilder();
-        page.navigate("http://the-internet.herokuapp.com/context_menu");
         page.onDialog(dialog ->
                 {
                     builder.append(dialog.message());
@@ -88,14 +88,14 @@ public class UiInteractionTest extends BaseTest {
     public void uploadFileTest() {
         String fileName = new Date().getTime() + "0101_name.txt";
         String fileText = new Date().getTime() + "_0202 - Description";
-        page.navigate("http://the-internet.herokuapp.com/upload");
+        page.navigate("/upload");
         FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText
                 .getBytes(StandardCharsets.UTF_8));
         page.locator("//input[@id='file-upload']").setInputFiles(filePayload);
         page.click("//input[@id='file-submit']");
         boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
         Assertions.assertTrue(isSuccessMessageDisplays);
-        page.navigate("http://the-internet.herokuapp.com/download");
+        page.navigate("/download");
         Download download = page.waitForDownload(() -> {
             page.getByText(fileName).click();
         });
@@ -113,7 +113,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Check disabled input field")
     public void disabledInputFieldTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         boolean isInputFieldDisabled = page.isDisabled("//form[@id='input-example']/child::input[@type='text']");
         Assertions.assertTrue(isInputFieldDisabled);
     }
@@ -122,7 +122,7 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Check elements once input is enabled")
     public void enableInputTest() {
         String expectedEnabledMessage = "It's enabled!";
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Enable')]");
         Assertions.assertAll(
                 () -> Assertions.assertEquals(expectedEnabledMessage, page.locator("//p[@id='message']").textContent()),
@@ -133,7 +133,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Checkbox state after it was removed and added")
     public void checkBoxStateAfterRemovedAddedTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Remove')]");
         page.click("//button[@type='button' and contains(text(),'Add')]");
         Assertions.assertFalse(page.isChecked("//input[@id='checkbox']"));
@@ -142,7 +142,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Checkbox state once selected")
     public void selectCheckboxTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.check(checkboxLocatorPath);
         Assertions.assertTrue(page.isChecked(checkboxLocatorPath));
     }
@@ -150,7 +150,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Checkbox state once unselected")
     public void unselectCheckboxTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.check(checkboxLocatorPath);
         page.uncheck(checkboxLocatorPath);
         Assertions.assertFalse(page.isChecked(checkboxLocatorPath));
@@ -159,7 +159,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Remove checkbox")
     public void removeCheckboxTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Remove')]");
         page.waitForSelector("//button[@type='button' and contains(text(),'Add')]");
         boolean isVisible = page.isVisible(checkboxLocatorPath);
