@@ -23,6 +23,9 @@ import static form.MessageForm.SUCCESS_LOGIN_MESSAGE;
 import static form.MessageForm.SUCCESS_LOGOUT_MESSAGE;
 
 public class UiInteractionTest extends BaseTest {
+
+    private static String checkboxLocatorPath = "//input[@type='checkbox']";
+
     @Test
     @DisplayName("Login and Logout via auth form")
     public void loginViaAuthFormTest() {
@@ -68,61 +71,43 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Open dialog by right-clicking and accept")
     public void rightClickToOpenDialogTest() {
         String expectedDialogMessage = "You selected a context menu";
-        String[] actual = new String[1];
         page.navigate("/context_menu");
+        StringBuilder builder = new StringBuilder();
         page.onDialog(dialog ->
                 {
-                    actual[0] = dialog.message();
+                    builder.append(dialog.message());
                     dialog.accept();
                 }
         );
         page.locator("//div[@oncontextmenu]").click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
-        Assertions.assertTrue(actual[0].equals(expectedDialogMessage));
+        Assertions.assertEquals(expectedDialogMessage, builder.toString());
     }
 
     @Test
-    @DisplayName("Upload file")
+    @DisplayName("Upload and download file")
     public void uploadFileTest() {
-        String fileName = generateNumber(50) + "0101_name.txt";
+        String fileName = new Date().getTime() + "0101_name.txt";
+        String fileText = new Date().getTime() + "_0202 - Description";
         page.navigate("/upload");
-        page.locator("//input[@id='file-upload']")
-                .setInputFiles(new FilePayload(fileName, "text/plain", "My description"
-                        .getBytes(StandardCharsets.UTF_8)));
-        page.click("//input[@id='file-submit']");
-        boolean isSuccessMessageDisplays = page.isVisible("//h3[contains(text(),'File Uploaded!')]");
-        Assertions.assertTrue(isSuccessMessageDisplays);
-    }
-
-    @Test
-    @DisplayName("Download uploaded file")
-    public void uploadDownloadFileTest() {
-        String fileName = generateNumber(50) + "_0202_name.txt";
-        String fileText = generateNumber(50) + "_0202 - Description";
-        String actualText = null;
         FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText
                 .getBytes(StandardCharsets.UTF_8));
-        page.navigate("/upload");
         page.locator("//input[@id='file-upload']").setInputFiles(filePayload);
         page.click("//input[@id='file-submit']");
+        boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
+        Assertions.assertTrue(isSuccessMessageDisplays);
         page.navigate("/download");
         Download download = page.waitForDownload(() -> {
             page.getByText(fileName).click();
         });
         download.saveAs(Paths.get("src/test/resources/download/" + fileName));
-
-        try (FileReader reader = new FileReader("src/test/resources/download/" + fileName)) {
-            char[] buf = new char[256];
-            int c;
-            while ((c = reader.read(buf)) > 0) {
-                if (c < 256) {
-                    buf = Arrays.copyOf(buf, c);
-                }
-            }
-            actualText = String.valueOf(buf);
+        String uploaded = Arrays.toString(filePayload.buffer);
+        String downloaded;
+        try {
+            downloaded = Arrays.toString(download.createReadStream().readAllBytes());
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
         }
-        Assertions.assertTrue(actualText.equals(fileText));
+        Assertions.assertEquals(uploaded, downloaded);
     }
 
     @Test
@@ -140,7 +125,7 @@ public class UiInteractionTest extends BaseTest {
         page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Enable')]");
         Assertions.assertAll(
-                () -> Assertions.assertTrue(page.locator("//p[@id='message']").textContent().equals(expectedEnabledMessage)),
+                () -> Assertions.assertEquals(expectedEnabledMessage, page.locator("//p[@id='message']").textContent()),
                 () -> Assertions.assertTrue(page.isEnabled("//form[@id='input-example']/child::input[@type='text']"))
         );
     }
@@ -158,17 +143,17 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Checkbox state once selected")
     public void selectCheckboxTest() {
         page.navigate("/dynamic_controls");
-        page.check("//input[@type='checkbox']");
-        Assertions.assertTrue(page.isChecked("//input[@type='checkbox']"));
+        page.check(checkboxLocatorPath);
+        Assertions.assertTrue(page.isChecked(checkboxLocatorPath));
     }
 
     @Test
     @DisplayName("Checkbox state once unselected")
     public void unselectCheckboxTest() {
         page.navigate("/dynamic_controls");
-        page.check("//input[@type='checkbox']");
-        page.uncheck("//input[@type='checkbox']");
-        Assertions.assertFalse(page.isChecked("//input[@type='checkbox']"));
+        page.check(checkboxLocatorPath);
+        page.uncheck(checkboxLocatorPath);
+        Assertions.assertFalse(page.isChecked(checkboxLocatorPath));
     }
 
     @Test
@@ -177,7 +162,7 @@ public class UiInteractionTest extends BaseTest {
         page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Remove')]");
         page.waitForSelector("//button[@type='button' and contains(text(),'Add')]");
-        boolean isVisible = page.isVisible("//input[@type='checkbox']");
+        boolean isVisible = page.isVisible(checkboxLocatorPath);
         Assertions.assertFalse(isVisible);
     }
 
