@@ -1,6 +1,9 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
+import form.HeaderForm;
+import form.LoginForm;
+import form.MessageForm;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
@@ -38,7 +41,6 @@ public abstract class BaseTest {
     public void setUpBeforeEachMethod() {
         context = browser.newContext(setBrowserNewContext());
         page = context.newPage();
-
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {

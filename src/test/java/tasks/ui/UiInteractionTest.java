@@ -22,16 +22,14 @@ import static form.MessageForm.SUCCESS_LOGIN_MESSAGE;
 import static form.MessageForm.SUCCESS_LOGOUT_MESSAGE;
 
 public class UiInteractionTest extends BaseTest {
-
-    private static final String username = ConfigReader.getPropValue("usernameAuthForm");
-    private static final String password = ConfigReader.getPropValue("passwordAuthForm");
-    private MessageForm messageForm = new MessageForm(page);
-    private LoginForm loginForm = new LoginForm(page);
-    private HeaderForm headerForm = new HeaderForm(page);
-
     @Test
     @DisplayName("Login and Logout via auth form")
     public void loginViaAuthFormTest() {
+        String username = ConfigReader.getPropValue("usernameAuthForm");
+        String password = ConfigReader.getPropValue("passwordAuthForm");
+        MessageForm messageForm = new MessageForm(page);
+        LoginForm loginForm = new LoginForm(page);
+        HeaderForm headerForm = new HeaderForm(page);
         page.navigate("/login");
         loginForm.fillFormAndLogIn(username, password);
         boolean isUserLoggedIntoMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGIN_MESSAGE);
