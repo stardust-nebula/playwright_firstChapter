@@ -44,94 +44,70 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Login via http credentials")
     public void loginViaHttpCredTest() {
-        page.navigate("http://admin:admin@the-internet.herokuapp.com/basic_auth");
+        page.navigate("http://@the-internet.herokuapp.com/basic_auth");
         boolean isSuccessMessageDisplays = page.locator("//p").textContent().contains("Congratulations!");
         Assertions.assertTrue(isSuccessMessageDisplays);
     }
 
     @Test
-    @DisplayName("Add Elements")
+    @DisplayName("Add and remove Elements")
     public void addElementsTest() {
-        int numberToClick = generateNumber(10);
+        int numberToClick = new Random().nextInt(10);
+        if (numberToClick == 0) {
+            ++numberToClick;
+        }
+        Locator.ClickOptions clickOptionsCount = new Locator.ClickOptions().setClickCount(numberToClick);
         page.navigate("http://the-internet.herokuapp.com/add_remove_elements/");
-        page.locator("//button[contains(text(), 'Add Element')]").click(new Locator.ClickOptions().setClickCount(numberToClick));
-        Locator locator = page.locator("//button[contains(text(),'Delete')]");
+        Locator addElement = page.locator("button", new Page.LocatorOptions().setHasText("Add Element"));
+        addElement.click(clickOptionsCount);
+        Locator locator = page.locator("button", new Page.LocatorOptions().setHasText("Delete"));
         int numberOfDeleteElements = locator.count();
         Assertions.assertTrue(numberToClick == numberOfDeleteElements);
-    }
-
-    @Test
-    @DisplayName("Remove Elements")
-    public void removeElementsTest() {
-        int numberToClick = generateNumber(10);
-        page.navigate("http://the-internet.herokuapp.com/add_remove_elements/");
-        page.locator("//button[contains(text(), 'Add Element')]").click(new Locator.ClickOptions().setClickCount(numberToClick));
-        Locator locator = page.locator("//button[contains(text(),'Delete')]");
-        for (int i = 0; i < numberToClick; i++) {
-            locator.last().click();
-        }
-        Assertions.assertTrue(locator.count() == 0);
+        locator.first().click(clickOptionsCount);
+        Assertions.assertEquals(0, locator.count());
     }
 
     @Test
     @DisplayName("Open dialog by right-clicking and accept")
     public void rightClickToOpenDialogTest() {
         String expectedDialogMessage = "You selected a context menu";
-        String[] actual = new String[1];
+        StringBuilder builder = new StringBuilder();
         page.navigate("http://the-internet.herokuapp.com/context_menu");
         page.onDialog(dialog ->
                 {
-                    actual[0] = dialog.message();
+                    builder.append(dialog.message());
                     dialog.accept();
                 }
         );
         page.locator("//div[@oncontextmenu]").click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
-        Assertions.assertTrue(actual[0].equals(expectedDialogMessage));
+        Assertions.assertEquals(expectedDialogMessage, builder.toString());
     }
 
     @Test
-    @DisplayName("Upload file")
+    @DisplayName("Upload and download file")
     public void uploadFileTest() {
-        String fileName = generateNumber(50) + "0101_name.txt";
+        String fileName = new Date().getTime() + "0101_name.txt";
+        String fileText = new Date().getTime() + "_0202 - Description";
         page.navigate("http://the-internet.herokuapp.com/upload");
-        page.locator("//input[@id='file-upload']")
-                .setInputFiles(new FilePayload(fileName, "text/plain", "My description"
-                        .getBytes(StandardCharsets.UTF_8)));
-        page.click("//input[@id='file-submit']");
-        boolean isSuccessMessageDisplays = page.isVisible("//h3[contains(text(),'File Uploaded!')]");
-        Assertions.assertTrue(isSuccessMessageDisplays);
-    }
-
-    @Test
-    @DisplayName("Download uploaded file")
-    public void uploadDownloadFileTest() {
-        String fileName = generateNumber(50) + "_0202_name.txt";
-        String fileText = generateNumber(50) + "_0202 - Description";
-        String actualText = null;
         FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText
                 .getBytes(StandardCharsets.UTF_8));
-        page.navigate("http://the-internet.herokuapp.com/upload");
         page.locator("//input[@id='file-upload']").setInputFiles(filePayload);
         page.click("//input[@id='file-submit']");
+        boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
+        Assertions.assertTrue(isSuccessMessageDisplays);
         page.navigate("http://the-internet.herokuapp.com/download");
         Download download = page.waitForDownload(() -> {
             page.getByText(fileName).click();
         });
         download.saveAs(Paths.get("src/test/resources/download/" + fileName));
-
-        try (FileReader reader = new FileReader("src/test/resources/download/" + fileName)) {
-            char[] buf = new char[256];
-            int c;
-            while ((c = reader.read(buf)) > 0) {
-                if (c < 256) {
-                    buf = Arrays.copyOf(buf, c);
-                }
-            }
-            actualText = String.valueOf(buf);
+        String uploaded = Arrays.toString(filePayload.buffer);
+        String downloaded;
+        try {
+            downloaded = Arrays.toString(download.createReadStream().readAllBytes());
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
         }
-        Assertions.assertTrue(actualText.equals(fileText));
+        Assertions.assertEquals(uploaded, downloaded);
     }
 
     @Test
@@ -149,7 +125,7 @@ public class UiInteractionTest extends BaseTest {
         page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Enable')]");
         Assertions.assertAll(
-                () -> Assertions.assertTrue(page.locator("//p[@id='message']").textContent().equals(expectedEnabledMessage)),
+                () -> Assertions.assertEquals(expectedEnabledMessage, page.locator("//p[@id='message']").textContent()),
                 () -> Assertions.assertTrue(page.isEnabled("//form[@id='input-example']/child::input[@type='text']"))
         );
     }
@@ -167,17 +143,17 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Checkbox state once selected")
     public void selectCheckboxTest() {
         page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
-        page.check("//input[@type='checkbox']");
-        Assertions.assertTrue(page.isChecked("//input[@type='checkbox']"));
+        page.check(checkboxLocatorPath);
+        Assertions.assertTrue(page.isChecked(checkboxLocatorPath));
     }
 
     @Test
     @DisplayName("Checkbox state once unselected")
     public void unselectCheckboxTest() {
         page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
-        page.check("//input[@type='checkbox']");
-        page.uncheck("//input[@type='checkbox']");
-        Assertions.assertFalse(page.isChecked("//input[@type='checkbox']"));
+        page.check(checkboxLocatorPath);
+        page.uncheck(checkboxLocatorPath);
+        Assertions.assertFalse(page.isChecked(checkboxLocatorPath));
     }
 
     @Test
@@ -186,7 +162,7 @@ public class UiInteractionTest extends BaseTest {
         page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Remove')]");
         page.waitForSelector("//button[@type='button' and contains(text(),'Add')]");
-        boolean isVisible = page.isVisible("//input[@type='checkbox']");
+        boolean isVisible = page.isVisible(checkboxLocatorPath);
         Assertions.assertFalse(isVisible);
     }
 
