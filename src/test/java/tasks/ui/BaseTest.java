@@ -1,6 +1,7 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
+import form.HeaderForm;
 import form.LoginForm;
 import form.MessageForm;
 import org.junit.jupiter.api.*;
@@ -17,6 +18,7 @@ public abstract class BaseTest {
     protected Page page;
     protected MessageForm messageForm;
     protected LoginForm loginForm;
+    protected HeaderForm headerForm;
 
     @BeforeAll
     public void setUp() {
@@ -30,28 +32,32 @@ public abstract class BaseTest {
         page = context.newPage();
         loginForm = new LoginForm(page);
         messageForm = new MessageForm(page);
+        headerForm = new HeaderForm(page);
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
+        double slowMo = Double.parseDouble(ConfigReader.getPropValue("setSlowMoParam"));
         return new BrowserType.LaunchOptions()
                 .setHeadless(false)
-                .setSlowMo(1000)
+                .setSlowMo(slowMo)
                 .setChannel(ConfigReader.getPropValue("browserName"));
     }
 
     private Browser.NewContextOptions setBrowserNewContext() {
+        int recordVideoWidth = Integer.parseInt(ConfigReader.getPropValue("recordVideSizeByWidth"));
+        int recordVideoHeight = Integer.parseInt(ConfigReader.getPropValue("recordVideSizeByHeight"));
+        int viewPortWidth = Integer.parseInt(ConfigReader.getPropValue("viewPortByWidth"));
+        int viewPortHeight = Integer.parseInt(ConfigReader.getPropValue("viewPortByHeight"));
+
         return new Browser.NewContextOptions()
                 .setRecordVideoDir(Paths.get("video/"))
-                .setRecordVideoSize(1880, 880)
-                .setViewportSize(1880, 880);
+                .setRecordVideoSize(recordVideoWidth, recordVideoHeight)
+                .setViewportSize(viewPortWidth, viewPortHeight)
+                .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"));
     }
 
     protected int generateNumber(int boundary) {
-        int numberToClick = new Random().nextInt(boundary);
-        if (numberToClick == 0) {
-            numberToClick = 1;
-        }
-        return numberToClick;
+        return new Random().nextInt(boundary) + 1;
     }
 
     private Page.ScreenshotOptions screenshotOptions(String screenshotFileName) {

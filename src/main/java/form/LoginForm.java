@@ -13,23 +13,21 @@ public class LoginForm extends Form {
         super(page);
     }
 
-    public LoginForm enterUsername(String username) {
+    public void enterUsername(String username) {
         page.fill(usernameLocatorPath, username);
-        return this;
     }
 
-    public LoginForm enterPassword(String password) {
+    public void enterPassword(String password) {
         page.fill(passwordLocatorPath, password);
-        return this;
     }
 
     public void clickLoginButton() {
         page.click(loginButtonLocatorPath);
     }
 
-    public void fillFormAndLogIn(){
-        enterUsername(ConfigReader.getPropValue("usernameAuthForm"));
-        enterPassword(ConfigReader.getPropValue("passwordAuthForm"));
+    public void fillFormAndLogIn(String usernameValue, String passwordValue){
+        enterUsername(usernameValue);
+        enterPassword(passwordValue);
         clickLoginButton();
     }
 

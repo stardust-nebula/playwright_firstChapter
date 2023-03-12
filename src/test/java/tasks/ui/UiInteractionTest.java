@@ -7,6 +7,7 @@ import com.microsoft.playwright.options.MouseButton;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import util.ConfigReader;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,35 +15,42 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static util.UrlConstants.LOGIN_PAGE_URL;
+import static form.MessageForm.SUCCESS_LOGIN_MESSAGE;
+import static form.MessageForm.SUCCESS_LOGOUT_MESSAGE;
 
 public class UiInteractionTest extends BaseTest {
 
-    @Test
-    @DisplayName("Login via auth form")
-    public void loginViaAuthFormTest() {
-        String expectedLoginMessage = "You logged into a secure area!";
-        page.navigate(LOGIN_PAGE_URL);
-        loginForm.fillFormAndLogIn();
-        boolean isUserLoggedIntoMessageAppears = messageForm.isMessageAppears(expectedLoginMessage);
-        Assertions.assertTrue(isUserLoggedIntoMessageAppears);
-    }
+    private static final String username = ConfigReader.getPropValue("usernameAuthForm");
+    private static final String password = ConfigReader.getPropValue("passwordAuthForm");
 
     @Test
-    @DisplayName("Logout via auth form")
-    public void logoutViaAuthFormTest() {
-        String expectedLogoutMessage = "You logged out of the secure area!";
-        page.navigate("http://the-internet.herokuapp.com/login");
-        loginForm.fillFormAndLogIn();
-        page.click("//a[@href='/logout']");
-        boolean isUserLoggedOutMessageAppears = messageForm.isMessageAppears(expectedLogoutMessage);
+    @DisplayName("Login and Logout via auth form")
+    public void loginViaAuthFormTest() {
+        page.navigate("/login");
+        loginForm.fillFormAndLogIn(username, password);
+        boolean isUserLoggedIntoMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGIN_MESSAGE);
+        Assertions.assertTrue(isUserLoggedIntoMessageAppears);
+        headerForm.clickLogoutButton();
+        boolean isUserLoggedOutMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGOUT_MESSAGE);
         Assertions.assertTrue(isUserLoggedOutMessageAppears);
+
     }
+//
+//    @Test
+//    @DisplayName("Logout via auth form")
+//    public void logoutViaAuthFormTest() {
+//        String expectedLogoutMessage = "You logged out of the secure area!";
+//        page.navigate("/login");
+//        loginForm.fillFormAndLogIn(username, password);
+//        page.click("//a[@href='/logout']");
+//        boolean isUserLoggedOutMessageAppears = messageForm.isMessageAppears(expectedLogoutMessage);
+//        Assertions.assertTrue(isUserLoggedOutMessageAppears);
+//    }
 
     @Test
     @DisplayName("Login via http credentials")
     public void loginViaHttpCredTest() {
-        page.navigate("http://admin:admin@the-internet.herokuapp.com/basic_auth");
+        page.navigate("/basic_auth");
         boolean isSuccessMessageDisplays = page.locator("//p").textContent().contains("Congratulations!");
         Assertions.assertTrue(isSuccessMessageDisplays);
     }
@@ -51,7 +59,7 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Add Elements")
     public void addElementsTest() {
         int numberToClick = generateNumber(10);
-        page.navigate("http://the-internet.herokuapp.com/add_remove_elements/");
+        page.navigate("/add_remove_elements/");
         page.locator("//button[contains(text(), 'Add Element')]").click(new Locator.ClickOptions().setClickCount(numberToClick));
         Locator locator = page.locator("//button[contains(text(),'Delete')]");
         int numberOfDeleteElements = locator.count();
@@ -62,7 +70,7 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Remove Elements")
     public void removeElementsTest() {
         int numberToClick = generateNumber(10);
-        page.navigate("http://the-internet.herokuapp.com/add_remove_elements/");
+        page.navigate("/add_remove_elements/");
         page.locator("//button[contains(text(), 'Add Element')]").click(new Locator.ClickOptions().setClickCount(numberToClick));
         Locator locator = page.locator("//button[contains(text(),'Delete')]");
         for (int i = 0; i < numberToClick; i++) {
@@ -76,7 +84,7 @@ public class UiInteractionTest extends BaseTest {
     public void rightClickToOpenDialogTest() {
         String expectedDialogMessage = "You selected a context menu";
         String[] actual = new String[1];
-        page.navigate("http://the-internet.herokuapp.com/context_menu");
+        page.navigate("/context_menu");
         page.onDialog(dialog ->
                 {
                     actual[0] = dialog.message();
@@ -91,7 +99,7 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Upload file")
     public void uploadFileTest() {
         String fileName = generateNumber(50) + "0101_name.txt";
-        page.navigate("http://the-internet.herokuapp.com/upload");
+        page.navigate("/upload");
         page.locator("//input[@id='file-upload']")
                 .setInputFiles(new FilePayload(fileName, "text/plain", "My description"
                         .getBytes(StandardCharsets.UTF_8)));
@@ -108,10 +116,10 @@ public class UiInteractionTest extends BaseTest {
         String actualText = null;
         FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText
                 .getBytes(StandardCharsets.UTF_8));
-        page.navigate("http://the-internet.herokuapp.com/upload");
+        page.navigate("/upload");
         page.locator("//input[@id='file-upload']").setInputFiles(filePayload);
         page.click("//input[@id='file-submit']");
-        page.navigate("http://the-internet.herokuapp.com/download");
+        page.navigate("/download");
         Download download = page.waitForDownload(() -> {
             page.getByText(fileName).click();
         });
@@ -135,7 +143,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Check disabled input field")
     public void disabledInputFieldTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         boolean isInputFieldDisabled = page.isDisabled("//form[@id='input-example']/child::input[@type='text']");
         Assertions.assertTrue(isInputFieldDisabled);
     }
@@ -144,7 +152,7 @@ public class UiInteractionTest extends BaseTest {
     @DisplayName("Check elements once input is enabled")
     public void enableInputTest() {
         String expectedEnabledMessage = "It's enabled!";
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Enable')]");
         Assertions.assertAll(
                 () -> Assertions.assertTrue(page.locator("//p[@id='message']").textContent().equals(expectedEnabledMessage)),
@@ -155,7 +163,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Checkbox state after it was removed and added")
     public void checkBoxStateAfterRemovedAddedTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Remove')]");
         page.click("//button[@type='button' and contains(text(),'Add')]");
         Assertions.assertFalse(page.isChecked("//input[@id='checkbox']"));
@@ -164,7 +172,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Checkbox state once selected")
     public void selectCheckboxTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.check("//input[@type='checkbox']");
         Assertions.assertTrue(page.isChecked("//input[@type='checkbox']"));
     }
@@ -172,7 +180,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Checkbox state once unselected")
     public void unselectCheckboxTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.check("//input[@type='checkbox']");
         page.uncheck("//input[@type='checkbox']");
         Assertions.assertFalse(page.isChecked("//input[@type='checkbox']"));
@@ -181,7 +189,7 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Remove checkbox")
     public void removeCheckboxTest() {
-        page.navigate("http://the-internet.herokuapp.com/dynamic_controls");
+        page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Remove')]");
         page.waitForSelector("//button[@type='button' and contains(text(),'Add')]");
         boolean isVisible = page.isVisible("//input[@type='checkbox']");
