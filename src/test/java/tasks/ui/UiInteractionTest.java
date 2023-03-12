@@ -1,11 +1,10 @@
 package tasks.ui;
 
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Download;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.MouseButton;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,27 +13,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Random;
 
-@Slf4j
-public class UiInteractionTest {
-
-    private static Page page;
-    private static String checkboxLocatorPath = "//input[@type='checkbox']";
-
-    @BeforeAll
-    public static void setUp() {
-        Playwright playwright = Playwright.create();
-        BrowserContext context = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                        .setHeadless(false)
-                        .setSlowMo(1000))
-                .newContext(
-                        new Browser.NewContextOptions()
-                                .setHttpCredentials("admin", "admin")
-                );
-        page = context.newPage();
-    }
+public class UiInteractionTest extends BaseTest {
 
     @Test
     @DisplayName("Login via auth form")
@@ -184,12 +164,6 @@ public class UiInteractionTest {
         page.waitForSelector("//button[@type='button' and contains(text(),'Add')]");
         boolean isVisible = page.isVisible(checkboxLocatorPath);
         Assertions.assertFalse(isVisible);
-    }
-
-    private void fillFormAndLogIn() {
-        page.fill("//input[@id='username']", "tomsmith");
-        page.fill("//input[@id='password']", "SuperSecretPassword!");
-        page.click("//button[@type='submit']");
     }
 
 }
