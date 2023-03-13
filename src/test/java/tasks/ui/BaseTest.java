@@ -1,9 +1,6 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
-import form.HeaderForm;
-import form.LoginForm;
-import form.MessageForm;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
@@ -18,6 +15,7 @@ public abstract class BaseTest {
     protected static Browser browser;
     protected BrowserContext context;
     protected Page page;
+//    private  TestInfo testInfo;
 
     @BeforeAll
     public void setUp() {
@@ -40,6 +38,10 @@ public abstract class BaseTest {
     @BeforeEach
     public void setUpBeforeEachMethod() {
         context = browser.newContext(setBrowserNewContext());
+        context.tracing().start(new Tracing.StartOptions()
+                .setScreenshots(true)
+                .setSnapshots(true)
+                .setSources(true));
         page = context.newPage();
     }
 
@@ -61,7 +63,8 @@ public abstract class BaseTest {
                 .setRecordVideoDir(Paths.get("video/"))
                 .setRecordVideoSize(recordVideoWidth, recordVideoHeight)
                 .setViewportSize(viewPortWidth, viewPortHeight)
-                .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"));
+                .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"))
+                .setHttpCredentials("admin", "admin");
     }
 
     protected int generateNumber(int boundary) {
@@ -88,8 +91,10 @@ public abstract class BaseTest {
     }
 
     @AfterEach
-    public void tearDownAfterEachMethod() {
+    public void tearDownAfterEachMethod(TestInfo testInfo) {
         page.close();
+        context.tracing().stop(new Tracing.StopOptions()
+                .setPath(Paths.get("tracing/" + testInfo.getDisplayName().replaceAll(" ", "") + ".zip")));
         context.close();
     }
 
