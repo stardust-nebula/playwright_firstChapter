@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import util.ConfigReader;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -74,12 +73,10 @@ public class UiInteractionTest extends BaseTest {
         String expectedDialogMessage = "You selected a context menu";
         page.navigate("/context_menu");
         StringBuilder builder = new StringBuilder();
-        page.onDialog(dialog ->
-                {
-                    builder.append(dialog.message());
-                    dialog.accept();
-                }
-        );
+        page.onDialog(dialog -> {
+            builder.append(dialog.message());
+            dialog.accept();
+        });
         page.locator("//div[@oncontextmenu]").click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
         Assertions.assertEquals(expectedDialogMessage, builder.toString());
     }
@@ -90,8 +87,7 @@ public class UiInteractionTest extends BaseTest {
         String fileName = new Date().getTime() + "0101_name.txt";
         String fileText = new Date().getTime() + "_0202 - Description";
         page.navigate("/upload");
-        FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText
-                .getBytes(StandardCharsets.UTF_8));
+        FilePayload filePayload = new FilePayload(fileName, "text/plain", fileText.getBytes(StandardCharsets.UTF_8));
         page.locator("//input[@id='file-upload']").setInputFiles(filePayload);
         page.click("//input[@id='file-submit']");
         boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
@@ -125,10 +121,7 @@ public class UiInteractionTest extends BaseTest {
         String expectedEnabledMessage = "It's enabled!";
         page.navigate("/dynamic_controls");
         page.click("//button[@type='button' and contains(text(),'Enable')]");
-        Assertions.assertAll(
-                () -> Assertions.assertEquals(expectedEnabledMessage, page.locator("//p[@id='message']").textContent()),
-                () -> Assertions.assertTrue(page.isEnabled("//form[@id='input-example']/child::input[@type='text']"))
-        );
+        Assertions.assertAll(() -> Assertions.assertEquals(expectedEnabledMessage, page.locator("//p[@id='message']").textContent()), () -> Assertions.assertTrue(page.isEnabled("//form[@id='input-example']/child::input[@type='text']")));
     }
 
     @Test
