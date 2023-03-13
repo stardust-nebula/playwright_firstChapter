@@ -18,5 +18,8 @@ public class SimpleTest {
         page.click("//a[text()='Context Menu']");
         boolean isContextMenuPageTitleShown = page.locator("//h3[text()='Context Menu']").isVisible();
         Assertions.assertTrue(isContextMenuPageTitleShown);
+       page.close();
+       context.close();
+       playwright.close();
     }
 }

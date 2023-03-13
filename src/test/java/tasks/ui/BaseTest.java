@@ -61,7 +61,8 @@ public abstract class BaseTest {
                 .setRecordVideoDir(Paths.get("video/"))
                 .setRecordVideoSize(recordVideoWidth, recordVideoHeight)
                 .setViewportSize(viewPortWidth, viewPortHeight)
-                .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"));
+                .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"))
+                .setHttpCredentials("admin", "admin");
     }
 
     protected int generateNumber(int boundary) {
