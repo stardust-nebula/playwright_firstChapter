@@ -16,6 +16,5 @@ jobs:
     - name: Install Playwright
       run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
     - run: npm install -D @playwright/test
-    - run: xvfb-run npx playwright test
     - name: Run tests
       run: mvn test
