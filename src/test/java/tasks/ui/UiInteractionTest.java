@@ -31,9 +31,9 @@ public class UiInteractionTest extends BaseTest {
     public void loginViaAuthFormTest() {
         String username = ConfigReader.getPropValue("usernameAuthForm");
         String password = ConfigReader.getPropValue("passwordAuthForm");
-        MessageForm messageForm = new MessageForm(page);
-        LoginForm loginForm = new LoginForm(page);
-        HeaderForm headerForm = new HeaderForm(page);
+        MessageForm messageForm = formFactory.getForm(page, MessageForm.class);
+        HeaderForm headerForm = formFactory.getForm(page, HeaderForm.class);
+        LoginForm loginForm = formFactory.getForm(page, LoginForm.class);
         page.navigate("/login");
         loginForm.fillFormAndLogIn(username, password);
         boolean isUserLoggedIntoMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGIN_MESSAGE);

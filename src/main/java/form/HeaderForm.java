@@ -2,7 +2,7 @@ package form;
 
 import com.microsoft.playwright.Page;
 
-public class HeaderForm extends Form {
+public class HeaderForm extends BaseForm {
 
     private String logoutButtonLocatorPath = "//a[@href='/logout']";
 

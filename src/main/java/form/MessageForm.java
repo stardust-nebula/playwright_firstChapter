@@ -2,7 +2,7 @@ package form;
 
 import com.microsoft.playwright.Page;
 
-public class MessageForm extends Form {
+public class MessageForm extends BaseForm {
 
     private String messageBannerLocatorPath = "//div[@id='flash']";
 

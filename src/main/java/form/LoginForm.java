@@ -1,9 +1,8 @@
 package form;
 
 import com.microsoft.playwright.Page;
-import util.ConfigReader;
 
-public class LoginForm extends Form {
+public class LoginForm extends BaseForm {
 
     private String usernameLocatorPath = "//input[@id='username']";
     private String passwordLocatorPath = "//input[@id='password']";

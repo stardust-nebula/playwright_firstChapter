@@ -1,6 +1,7 @@
 package tasks.ui;
 
 import com.microsoft.playwright.*;
+import form.FormFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
@@ -15,7 +16,8 @@ public abstract class BaseTest {
     protected static Browser browser;
     protected BrowserContext context;
     protected Page page;
-//    private  TestInfo testInfo;
+    protected FormFactory formFactory;
+    private  TestInfo testInfo;
 
     @BeforeAll
     public void setUp() {
@@ -24,13 +26,15 @@ public abstract class BaseTest {
     }
 
     @BeforeEach
-    public void setUpBeforeEachMethod() {
+    public void setUpBeforeEachMethod(TestInfo testInfo) {
         context = browser.newContext(setBrowserNewContext());
         context.tracing().start(new Tracing.StartOptions()
                 .setScreenshots(true)
                 .setSnapshots(true)
                 .setSources(true));
         page = context.newPage();
+        formFactory = new FormFactory();
+        this.testInfo = testInfo;
     }
 
     @AfterEach
