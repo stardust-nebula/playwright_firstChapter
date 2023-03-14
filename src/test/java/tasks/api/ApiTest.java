@@ -16,7 +16,7 @@ import org.junit.jupiter.api.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static util.ApiConstants.*;
+import static constant.ApiConstants.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ApiTest {
@@ -109,9 +109,9 @@ public class ApiTest {
     public void deleteBookingByIdTest() {
         APIResponse response = request.delete(BOOKING_ENDPOINT + String.format(BOOKING_ID_ENDPOINT, createdBookingId));
         Assertions.assertAll(
-                () -> Assertions.assertTrue(response.status() == 201),
-                () -> Assertions.assertTrue(response.statusText().equals("Created")),
-                () -> Assertions.assertTrue(response.text().equals("Created"))
+                () -> Assertions.assertEquals(201, response.status()),
+                () -> Assertions.assertEquals("Created", response.statusText()),
+                () -> Assertions.assertEquals("Created", response.text())
         );
     }
 }

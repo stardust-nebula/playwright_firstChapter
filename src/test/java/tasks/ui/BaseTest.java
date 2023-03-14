@@ -5,9 +5,7 @@ import form.FormFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import util.ConfigReader;
-
 import java.nio.file.Paths;
-import java.util.Random;
 
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -17,7 +15,7 @@ public abstract class BaseTest {
     protected BrowserContext context;
     protected Page page;
     protected FormFactory formFactory;
-    private  TestInfo testInfo;
+    private TestInfo testInfo;
 
     @BeforeAll
     public void setUp() {
@@ -29,9 +27,9 @@ public abstract class BaseTest {
     public void setUpBeforeEachMethod(TestInfo testInfo) {
         context = browser.newContext(setBrowserNewContext());
         context.tracing().start(new Tracing.StartOptions()
-                .setScreenshots(true)
-                .setSnapshots(true)
-                .setSources(true));
+                .setScreenshots(Boolean.parseBoolean(ConfigReader.getPropValue("setScreenshots")))
+                .setSnapshots(Boolean.parseBoolean(ConfigReader.getPropValue("setSnapshots")))
+                .setSources(Boolean.parseBoolean(ConfigReader.getPropValue("setSources"))));
         page = context.newPage();
         formFactory = new FormFactory();
         this.testInfo = testInfo;
@@ -64,10 +62,9 @@ public abstract class BaseTest {
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
-        double slowMo = Double.parseDouble(ConfigReader.getPropValue("setSlowMoParam"));
         return new BrowserType.LaunchOptions()
-                .setHeadless(true)
-                .setSlowMo(slowMo)
+                .setHeadless(Boolean.parseBoolean(ConfigReader.getPropValue("setHeadless")))
+                .setSlowMo(Double.parseDouble(ConfigReader.getPropValue("setSlowMoParam")))
                 .setChannel(ConfigReader.getPropValue("browserName"));
     }
 
@@ -78,15 +75,12 @@ public abstract class BaseTest {
         int viewPortHeight = Integer.parseInt(ConfigReader.getPropValue("viewPortByHeight"));
 
         return new Browser.NewContextOptions()
-                .setRecordVideoDir(Paths.get("video/"))
+                .setRecordVideoDir(Paths.get(ConfigReader.getPropValue("setRecordVideoDirPath")))
                 .setRecordVideoSize(recordVideoWidth, recordVideoHeight)
                 .setViewportSize(viewPortWidth, viewPortHeight)
                 .setBaseURL(ConfigReader.getPropValue("baseWebAppUrls"))
-                .setHttpCredentials("admin", "admin");
-    }
-
-    protected int generateNumber(int boundary) {
-        return new Random().nextInt(boundary) + 1;
+                .setHttpCredentials(ConfigReader.getPropValue("setHttpCredentialsUsername"),
+                        ConfigReader.getPropValue("setHttpCredentialsPassword"));
     }
 
     private Page.ScreenshotOptions screenshotOptions(String screenshotFileName) {

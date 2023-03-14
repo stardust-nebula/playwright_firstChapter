@@ -1,0 +1,1 @@
+call mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="%1 %2"

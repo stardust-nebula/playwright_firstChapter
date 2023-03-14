@@ -14,26 +14,29 @@ import org.junit.jupiter.api.Test;
 import util.ConfigReader;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Random;
 
 import static form.MessageForm.SUCCESS_LOGIN_MESSAGE;
 import static form.MessageForm.SUCCESS_LOGOUT_MESSAGE;
 
 public class UiInteractionTest extends BaseTest {
 
-    private static String checkboxLocatorPath = "//input[@type='checkbox']";
+    private static final String checkboxLocatorPath = "//input[@type='checkbox']";
 
     @Test()
     @DisplayName("Login and Logout via auth form")
     public void loginViaAuthFormTest() {
         String username = ConfigReader.getPropValue("usernameAuthForm");
         String password = ConfigReader.getPropValue("passwordAuthForm");
+        LoginForm loginForm = formFactory.getForm(page, LoginForm.class);
         MessageForm messageForm = formFactory.getForm(page, MessageForm.class);
         HeaderForm headerForm = formFactory.getForm(page, HeaderForm.class);
-        LoginForm loginForm = formFactory.getForm(page, LoginForm.class);
+
         page.navigate("/login");
         loginForm.fillFormAndLogIn(username, password);
         boolean isUserLoggedIntoMessageAppears = messageForm.isMessageContainsText(SUCCESS_LOGIN_MESSAGE);
@@ -55,14 +58,14 @@ public class UiInteractionTest extends BaseTest {
     @Test
     @DisplayName("Add and Remove Elements")
     public void addElementsTest() {
-        int numberToClick = generateNumber(10);
+        int numberToClick = new Random().nextInt(10) + 1;
         Locator.ClickOptions clickOptionsCount = new Locator.ClickOptions().setClickCount(numberToClick);
         page.navigate("/add_remove_elements/");
         Locator addElement = page.locator("button", new Page.LocatorOptions().setHasText("Add Element"));
         addElement.click(clickOptionsCount);
         Locator locator = page.locator("button", new Page.LocatorOptions().setHasText("Delete"));
         int numberOfDeleteElements = locator.count();
-        Assertions.assertTrue(numberToClick == numberOfDeleteElements);
+        Assertions.assertEquals(numberToClick, numberOfDeleteElements);
         locator.first().click(clickOptionsCount);
         Assertions.assertEquals(0, locator.count());
     }
@@ -93,14 +96,12 @@ public class UiInteractionTest extends BaseTest {
         boolean isSuccessMessageDisplays = page.waitForSelector("//h3[contains(text(),'File Uploaded!')]").isVisible();
         Assertions.assertTrue(isSuccessMessageDisplays);
         page.navigate("/download");
-        Download download = page.waitForDownload(() -> {
-            page.getByText(fileName).click();
-        });
+        Download download = page.waitForDownload(() -> page.getByText(fileName).click());
         download.saveAs(Paths.get("src/test/resources/download/" + fileName));
         String uploaded = Arrays.toString(filePayload.buffer);
         String downloaded;
-        try {
-            downloaded = Arrays.toString(download.createReadStream().readAllBytes());
+        try (InputStream inputStream = download.createReadStream()) {
+            downloaded = Arrays.toString(inputStream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

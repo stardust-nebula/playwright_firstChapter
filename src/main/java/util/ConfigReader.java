@@ -12,13 +12,13 @@ import java.util.Properties;
 @Slf4j
 public final class ConfigReader {
 
-    private static final String CONFIG_PROPERTIES_PATH = "src/test/java/resources/config.properties";
+    private static final String CONFIG_PROPERTIES_PATH = "src/test/resources/config.properties";
     public static String getPropValue(String key) {
         Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(CONFIG_PROPERTIES_PATH));
+        try (FileInputStream fileInputStream = new FileInputStream(CONFIG_PROPERTIES_PATH)){
+            properties.load(fileInputStream);
         } catch (IOException e) {
-            log.info("Error while reading config properties file: " + CONFIG_PROPERTIES_PATH);
+            log.error("Error while reading config properties file: " + CONFIG_PROPERTIES_PATH);
         }
         return properties.getProperty(key);
     }

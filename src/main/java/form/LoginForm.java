@@ -4,12 +4,15 @@ import com.microsoft.playwright.Page;
 
 public class LoginForm extends BaseForm {
 
-    private String usernameLocatorPath = "//input[@id='username']";
-    private String passwordLocatorPath = "//input[@id='password']";
-    private String loginButtonLocatorPath = "//button[@type='submit']";
+    private final String usernameLocatorPath = "//input[@id='username']";
+    private final String passwordLocatorPath = "//input[@id='password']";
+    private final String loginButtonLocatorPath = "//button[@type='submit']";
 
     public LoginForm(Page page) {
         super(page);
+    }
+
+    public LoginForm() {
     }
 
     public void enterUsername(String username) {
@@ -24,7 +27,7 @@ public class LoginForm extends BaseForm {
         page.click(loginButtonLocatorPath);
     }
 
-    public void fillFormAndLogIn(String usernameValue, String passwordValue){
+    public void fillFormAndLogIn(String usernameValue, String passwordValue) {
         enterUsername(usernameValue);
         enterPassword(passwordValue);
         clickLoginButton();
