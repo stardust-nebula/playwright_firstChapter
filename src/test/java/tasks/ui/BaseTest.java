@@ -20,19 +20,7 @@ public abstract class BaseTest {
     @BeforeAll
     public void setUp() {
         playwright = Playwright.create();
-        switch (ConfigReader.getPropValue("browserName")) {
-            case "chrome":
-                browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
-                break;
-            case "firefox":
-                browser = playwright.firefox().launch(getBrowserTypeLaunchOptions());
-                break;
-            default:
-                log.info("Requesting browser is not supported. Launching the default browser");
-                browser = playwright.chromium().launch(getBrowserTypeLaunchOptions());
-                break;
-        }
-
+        browser = getBrowser().launch(getBrowserTypeLaunchOptions());
     }
 
     @BeforeEach
@@ -43,6 +31,32 @@ public abstract class BaseTest {
                 .setSnapshots(true)
                 .setSources(true));
         page = context.newPage();
+    }
+
+    @AfterEach
+    public void tearDownAfterEachMethod(TestInfo testInfo) {
+        page.close();
+        context.tracing().stop(new Tracing.StopOptions()
+                .setPath(Paths.get("tracing/" + testInfo.getDisplayName().replaceAll(" ", "") + ".zip")));
+        context.close();
+    }
+
+    @AfterAll
+    public void tearDown() {
+        browser.close();
+        playwright.close();
+    }
+
+    private BrowserType getBrowser() {
+        return switch (ConfigReader.getPropValue("browserName")) {
+            case "chrome":
+                yield playwright.chromium();
+            case "firefox":
+                yield playwright.firefox();
+            default:
+                log.warn("Requesting browser is not supported. Launching the default browser");
+                yield playwright.chromium();
+        };
     }
 
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
@@ -88,20 +102,6 @@ public abstract class BaseTest {
     protected void takeScreenshotByLocator(String locatorElement, String screenshotFileName) {
         page.locator(locatorElement).screenshot(new Locator.ScreenshotOptions()
                 .setPath(Paths.get(ConfigReader.getPropValue("screenshotPath") + screenshotFileName)));
-    }
-
-    @AfterEach
-    public void tearDownAfterEachMethod(TestInfo testInfo) {
-        page.close();
-        context.tracing().stop(new Tracing.StopOptions()
-                .setPath(Paths.get("tracing/" + testInfo.getDisplayName().replaceAll(" ", "") + ".zip")));
-        context.close();
-    }
-
-    @AfterAll
-    public void tearDown() {
-        browser.close();
-        playwright.close();
     }
 
 }
