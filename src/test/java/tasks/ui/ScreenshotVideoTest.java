@@ -7,25 +7,10 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 
-public class ScreenshotVideoTest {
+public class ScreenshotVideoTest extends BaseTest {
     private static Playwright playwright;
     private static BrowserContext context;
     private static Page page;
-
-    @BeforeAll
-    public static void setUp() {
-        playwright = Playwright.create();
-        context = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                        .setHeadless(false)
-                        .setSlowMo(3000))
-                .newContext(
-                        new Browser.NewContextOptions()
-                                .setRecordVideoDir(Paths.get("video/"))
-                                .setRecordVideoSize(1880, 880)
-                                .setViewportSize(1880, 880)
-                );
-        page = context.newPage();
-    }
 
     @Test
     public void takeScreenshotTest() {
@@ -43,10 +28,4 @@ public class ScreenshotVideoTest {
                         .setPath(Paths.get("screenshot/img_3.png")));
     }
 
-    @AfterAll
-    public static void tearDown() {
-        page.close();
-        context.close();
-        playwright.close();
-    }
 }

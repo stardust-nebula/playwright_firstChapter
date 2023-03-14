@@ -26,7 +26,7 @@ public class UiInteractionTest extends BaseTest {
 
     private static String checkboxLocatorPath = "//input[@type='checkbox']";
 
-    @Test
+    @Test()
     @DisplayName("Login and Logout via auth form")
     public void loginViaAuthFormTest() {
         String username = ConfigReader.getPropValue("usernameAuthForm");
