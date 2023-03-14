@@ -10,7 +10,7 @@ public class SimpleTest {
     public void herokuappNavigateToContextMenu() {
         Playwright playwright = Playwright.create();
         BrowserContext context = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                        .setHeadless(false)
+                        .setHeadless(true)
                         .setSlowMo(3000))
                 .newContext();
         Page page = context.newPage();

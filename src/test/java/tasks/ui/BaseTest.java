@@ -48,7 +48,7 @@ public abstract class BaseTest {
     private BrowserType.LaunchOptions getBrowserTypeLaunchOptions() {
         double slowMo = Double.parseDouble(ConfigReader.getPropValue("setSlowMoParam"));
         return new BrowserType.LaunchOptions()
-                .setHeadless(false)
+                .setHeadless(true)
                 .setSlowMo(slowMo)
                 .setChannel(ConfigReader.getPropValue("browserName"));
     }
