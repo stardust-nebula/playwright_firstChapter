@@ -17,4 +17,6 @@ jobs:
       run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
     - run: npm install -D @playwright/test
     - name: Run tests
+      headless: true
       run: mvn test
+
