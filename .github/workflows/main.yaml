@@ -5,7 +5,6 @@ jobs:
   playwright_github_action_demo:
     name: Playwright tests demo
     runs-on: ubuntu-latest
-    headless: true
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-java@v3
@@ -17,5 +16,5 @@ jobs:
     - name: Install Playwright
       run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
     - name: Run tests
-      run: mvn test
+      run: mvn test headless=true
 
